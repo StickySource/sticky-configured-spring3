@@ -14,16 +14,12 @@ package net.stickycode.configured.spring3;
 
 import javax.inject.Inject;
 
-import net.stickycode.configured.ConfiguredBeanProcessor;
-import net.stickycode.metadata.MetadataResolverRegistry;
-import net.stickycode.stereotype.StickyComponent;
-import net.stickycode.stereotype.configured.Configured;
-import net.stickycode.stereotype.configured.ConfiguredStrategy;
-import net.stickycode.stereotype.configured.PostConfigured;
-import net.stickycode.stereotype.configured.PreConfigured;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
+
+import net.stickycode.configured.ConfiguredBeanProcessor;
+import net.stickycode.configured.ConfiguredMetadata;
+import net.stickycode.stereotype.StickyComponent;
 
 @StickyComponent
 public class ConfiguredBeanPostProcessor
@@ -33,28 +29,15 @@ public class ConfiguredBeanPostProcessor
   private ConfiguredBeanProcessor processor;
 
   @Inject
-  MetadataResolverRegistry metdataResolverRegistry;
+  ConfiguredMetadata annotations;
 
   @Override
-  public boolean postProcessAfterInstantiation(Object bean, String beanName) throws BeansException {
-    if (typeIsConfigured(bean.getClass())) {
+  public boolean postProcessAfterInstantiation(Object bean, String beanName)
+      throws BeansException {
+    if (annotations.typeIsConfigured(bean.getClass())) {
       processor.process(bean);
     }
     return true;
-  }
-
-  private boolean typeIsConfigured(Class<?> type) {
-    if (metdataResolverRegistry
-        .does(type)
-        .haveAnyFieldsMetaAnnotatedWith(Configured.class, ConfiguredStrategy.class))
-      return true;
-
-    if (metdataResolverRegistry
-        .does(type)
-        .haveAnyMethodsMetaAnnotatedWith(PreConfigured.class, PostConfigured.class))
-      return true;
-
-    return false;
   }
 
 }
